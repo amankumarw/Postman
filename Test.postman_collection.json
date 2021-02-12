@@ -1,0 +1,363 @@
+{
+	"info": {
+		"_postman_id": "a3e3f712-cabe-4829-8863-bc519f058fff",
+		"name": "Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Folder1",
+			"item": [
+				{
+					"name": "4. PUMP 1 WPS PHILLIPS CREEK DAM DEANMILL- MECH - MJ",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"///////////////////////FIELDS THAT REQUIRE CHANGE////////////////////////////////////////\r",
+									"//var WorkOrderNumber = \"OP30001000\";         //Type the Starting Work Order Number here   ///\r",
+									"var numberNeededToGenerate = 1;          //Type the amount you need here              ///\r",
+									"var DueByDateInc = 5;                    //Increment Due Date                         ///\r",
+									"var GLTRPInc = 10;                        //Increment GLTRP Basic Finish Date          ///\r",
+									"var FSAVDInc = 0;                        //Increment FSVAD Earliest Scheduled Start   ///\r",
+									"var GSTRPInc = 0;                        //Increment GSTRP Basic Start Date           ///\r",
+									"/////////////////////////////////////////////////////////////////////////////////////////\r",
+									"var WorkOrderNumber = pm.environment.get(\"WorkForToday\");\r",
+									"var wONumArray = new Array(numberNeededToGenerate);\r",
+									"\r",
+									"//var wonumarray set based off if its been made or not\r",
+									"wONumArray = pm.environment.get(\"wONumArray\");\r",
+									"\r",
+									"//check to see if it has been instatiated already\r",
+									"if(!wONumArray.length || !wONumArray)\r",
+									"{\r",
+									"    wONumArray = [];\r",
+									"    WONumGenerator(WorkOrderNumber, numberNeededToGenerate);\r",
+									"}\r",
+									"\r",
+									"//function for generating wonum and however many needed\r",
+									"//splits incase of JA\r",
+									"function WONumGenerator(wonum, n)\r",
+									"{\r",
+									"    var outputText = [];\r",
+									"    var json = wonum.split(' ');\r",
+									"    json.forEach(function (item) {\r",
+									"        outputText.push(item.replace(/\\'/g, '').split(/(\\d+)/).filter(Boolean));\r",
+									"    });\r",
+									"\r",
+									"    for(var i=0; i<n+1; i++)\r",
+									"    {\r",
+									"        if(outputText[0].length >1)\r",
+									"        {\r",
+									"            var num = parseInt(outputText[0][1]) + i;\r",
+									"            wONumArray.push(outputText[0][0] + num.toString());\r",
+									"        }\r",
+									"        else\r",
+									"        {\r",
+									"            var num = parseInt(outputText[0][0]) + i;\r",
+									"            wONumArray.push(num.toString());\r",
+									"        }\r",
+									"    }\r",
+									"    pm.environment.set(\"WorkForToday\", wONumArray[wONumArray.length-1]);\r",
+									"    wONumArray.pop();\r",
+									"}\r",
+									"\r",
+									"//Sorting out the Date, use padStart for when it is a single digit number\r",
+									"//this is a long way to change the dates by however much we need by resetting the date\r",
+									"// and then remaking the date and pulling it apart....\r",
+									"var today = new Date();\r",
+									"\r",
+									"var dd1 = new Date(today);\r",
+									"dd1.setDate(dd1.getDate() + DueByDateInc);\r",
+									"dd1 = String(dd1.getDate()).padStart(2,'0');\r",
+									"\r",
+									"var dd2 = new Date(today);\r",
+									"dd2.setDate(dd2.getDate() + GLTRPInc);\r",
+									"dd2 = String(dd2.getDate()).padStart(2,'0');\r",
+									"\r",
+									"var dd3 = new Date(today);\r",
+									"dd3.setDate(dd3.getDate() + FSAVDInc);\r",
+									"dd3 = dd3.toISOString().substring(0,10);\r",
+									"\r",
+									"var dd4 = new Date(today);\r",
+									"dd4.setDate(dd4.getDate() + GSTRPInc);\r",
+									"dd4 = String(dd4.getDate()).padStart(2,'0');\r",
+									"\r",
+									"var mm = String(today.getMonth() + 1).padStart(2,'0'); \r",
+									"var yyyy = today.getFullYear();\r",
+									"\r",
+									"\r",
+									"\r",
+									"//end dates to be passed to the xml in correct format\r",
+									"var todayDueBy = yyyy + '-' + mm + '-' + dd1;\r",
+									"var todayGLTRP = yyyy + '-' + mm + '-' + dd2;\r",
+									"var todayGSTRP = dd3;\r",
+									"var todayFSAVD = yyyy + '-' + mm + '-' + dd4;\r",
+									"\r",
+									"\r",
+									"//shift to the next WO number\r",
+									"var curwonum = wONumArray.shift();\r",
+									"\r",
+									"//current wonum we are on\r",
+									"pm.environment.set(\"wonum\", curwonum);\r",
+									"//setting the env variable for wo numbers\r",
+									"pm.environment.set(\"wONumArray\", wONumArray); \r",
+									"\r",
+									"//Setting Date Variables\r",
+									"pm.environment.set(\"DUEBYDATE\", todayDueBy);\r",
+									"pm.environment.set(\"GLTRP\", todayGLTRP);\r",
+									"pm.environment.set(\"GSTRP\", todayGSTRP);\r",
+									"pm.environment.set(\"FSAVD\", todayFSAVD);\r",
+									"\r",
+									"var dd5 = new Date(today);\r",
+									"dd5.setDate(dd5.getDate());\r",
+									"dd5 = String(dd5.getDate()).padStart(2,'0');\r",
+									"var todayERDAT = yyyy + '-' + mm + '-' + dd5;\r",
+									"pm.environment.set(\"ERDAT\", todayERDAT);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var wONumArray = pm.environment.get(\"wONumArray\");",
+									"",
+									"//runs the request recursivley based on how many there are",
+									"if (wONumArray && wONumArray.length > 0)",
+									"{",
+									"    postman.setNextRequest(request.name);",
+									"}",
+									"else",
+									"{",
+									"    postman.setNextRequest();",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "maxauth",
+								"type": "text",
+								"value": "{{maxauth}}"
+							},
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n        <ns1:SyncWCSAPWO xmlns:ns1=\"http://www.ibm.com/maximo\">\r\n            <ns1:WCSAPWOSet>\r\n                <ns1:WCSAPWO action=\"AddChange\">\r\n                    <ns1:AEDAT />\r\n                    <ns1:AUART>PM02</ns1:AUART>\r\n                    <ns1:AUFNR>{{wonum}}</ns1:AUFNR>\r\n                    <ns1:AUTYP>30</ns1:AUTYP>\r\n                    <ns1:DUEBYDATE>{{DUEBYDATE}}T22:47:00</ns1:DUEBYDATE>\r\n                    <ns1:ERDAT>{{ERDAT}}</ns1:ERDAT>\r\n                    <ns1:GIS_CONNECTED_FL>W0046052</ns1:GIS_CONNECTED_FL>\r\n                    <ns1:GLTRP>{{GLTRP}}T22:47:00</ns1:GLTRP>\r\n                    <ns1:GSBER>W</ns1:GSBER>\r\n                    <ns1:GSTRP>{{GSTRP}}T22:47:00</ns1:GSTRP>\r\n                    <ns1:ILART>MC2</ns1:ILART>\r\n                    <ns1:JPNUM>MWPPUF000</ns1:JPNUM>\r\n                    <ns1:KTEXT>DEANMILL PUMP 1 WPS PHILLIPS CRE</ns1:KTEXT>\r\n                    <ns1:LAUFN />\r\n                    <ns1:PLTXT>PUMP 1 WPS PHILLIPS CREEK DAM DEANMILL</ns1:PLTXT>\r\n                    <ns1:PRIOK>I</ns1:PRIOK>\r\n                    <ns1:PRIOKX>1 week</ns1:PRIOKX>\r\n                    <ns1:TPLNR>W0046054</ns1:TPLNR>\r\n                    <ns1:WCFUNCLOCATIONDESC>PUMP 1 WPS PHILLIPS CREEK DAM DEANMILL</ns1:WCFUNCLOCATIONDESC>\r\n                    <ns1:WCGISFUNCLOCATION>W0046052</ns1:WCGISFUNCLOCATION>\r\n                    <ns1:WCMXLOCATION>WB-COMMON-BRIDGETOWN</ns1:WCMXLOCATION>\r\n                    <ns1:WCSUBURB>DEANMILL</ns1:WCSUBURB>\r\n                    <ns1:WCSAPWOOP action=\"AddChange\">\r\n                        <ns1:ARBEI>1.2 </ns1:ARBEI>\r\n                        <ns1:ARBPL>SWBLBLM1</ns1:ARBPL>\r\n                        <ns1:FSAVD>{{FSAVD}}T22:47:00</ns1:FSAVD>\r\n                        <ns1:FSAVZ>22:47:00</ns1:FSAVZ>\r\n                        <ns1:GSBER>W</ns1:GSBER>\r\n                        <ns1:LTXA1>MWPPUF000 REPAIR/REPLACE PUMP</ns1:LTXA1>\r\n                        <ns1:VORNR>0010</ns1:VORNR>\r\n                        <ns1:WCSAPWOOPSTATUS action=\"AddChange\">\r\n                            <ns1:TXT04>REL</ns1:TXT04>\r\n                            <ns1:TXT30>Released</ns1:TXT30>\r\n                            <ns1:UTIME>00:00:00</ns1:UTIME>\r\n                        </ns1:WCSAPWOOPSTATUS>\r\n                    </ns1:WCSAPWOOP>\r\n                    <ns1:WCSAPWOCHAR action=\"AddChange\">\r\n                        <ns1:CHAR_NAME>WET_WELL_BLANKET</ns1:CHAR_NAME>\r\n                        <ns1:CHAR_VALUE>N</ns1:CHAR_VALUE>\r\n                        <ns1:QMNUM>000095314464</ns1:QMNUM>\r\n                    </ns1:WCSAPWOCHAR>\r\n                    <ns1:WCSAPWOCHAR action=\"AddChange\">\r\n                        <ns1:CHAR_NAME>MAINT_PLANT</ns1:CHAR_NAME>\r\n                        <ns1:CHAR_VALUE>0025</ns1:CHAR_VALUE>\r\n                        <ns1:QMNUM>000095314464</ns1:QMNUM>\r\n                    </ns1:WCSAPWOCHAR>\r\n                </ns1:WCSAPWO>\r\n            </ns1:WCSAPWOSet>\r\n        </ns1:SyncWCSAPWO>"
+						},
+						"url": {
+							"raw": "http://{{hostname}}/meaweb/es/WCSAPINT/WCSAPWO",
+							"protocol": "http",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"meaweb",
+								"es",
+								"WCSAPINT",
+								"WCSAPWO"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Folder2",
+			"item": [
+				{
+					"name": "15. CATCHMENT DAM QUINNINUP - RANGER - BR",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"///////////////////////FIELDS THAT REQUIRE CHANGE////////////////////////////////////////\r",
+									"//var WorkOrderNumber = \"OP30001000\";         //Type the Starting Work Order Number here   ///\r",
+									"var numberNeededToGenerate = 1;          //Type the amount you need here              ///\r",
+									"var DueByDateInc = 5;                    //Increment Due Date                         ///\r",
+									"var GLTRPInc = 10;                        //Increment GLTRP Basic Finish Date          ///\r",
+									"var FSAVDInc = 0;                        //Increment FSVAD Earliest Scheduled Start   ///\r",
+									"var GSTRPInc = 0;                        //Increment GSTRP Basic Start Date           ///\r",
+									"/////////////////////////////////////////////////////////////////////////////////////////\r",
+									"var WorkOrderNumber = pm.environment.get(\"WorkForToday\");\r",
+									"var wONumArray = new Array(numberNeededToGenerate);\r",
+									"\r",
+									"//var wonumarray set based off if its been made or not\r",
+									"wONumArray = pm.environment.get(\"wONumArray\");\r",
+									"\r",
+									"//check to see if it has been instatiated already\r",
+									"if(!wONumArray.length || !wONumArray)\r",
+									"{\r",
+									"    wONumArray = [];\r",
+									"    WONumGenerator(WorkOrderNumber, numberNeededToGenerate);\r",
+									"}\r",
+									"\r",
+									"//function for generating wonum and however many needed\r",
+									"//splits incase of JA\r",
+									"function WONumGenerator(wonum, n)\r",
+									"{\r",
+									"    var outputText = [];\r",
+									"    var json = wonum.split(' ');\r",
+									"    console.log(json);\r",
+									"    json.forEach(function (item) {\r",
+									"        console.log(item);\r",
+									"        console.log(item.replace(/\\'/g, '').split(/(\\d+)/).filter(Boolean))\r",
+									"        outputText.push(item.replace(/\\'/g, '').split(/(\\d+)/).filter(Boolean));\r",
+									"    });\r",
+									"\r",
+									"    for(var i=0; i<n+1; i++)\r",
+									"    {\r",
+									"        if(outputText[0].length >1)\r",
+									"        {\r",
+									"            var num = parseInt(outputText[0][1]) + i;\r",
+									"            wONumArray.push(outputText[0][0] + num.toString());\r",
+									"        }\r",
+									"        else\r",
+									"        {\r",
+									"            var num = parseInt(outputText[0][0]) + i;\r",
+									"            wONumArray.push(num.toString());\r",
+									"        }\r",
+									"    }\r",
+									"    pm.environment.set(\"WorkForToday\", wONumArray[wONumArray.length-1]);\r",
+									"    wONumArray.pop();\r",
+									"}\r",
+									"\r",
+									"//Sorting out the Date, use padStart for when it is a single digit number\r",
+									"//this is a long way to change the dates by however much we need by resetting the date\r",
+									"// and then remaking the date and pulling it apart....\r",
+									"var today = new Date();\r",
+									"\r",
+									"var dd1 = new Date(today);\r",
+									"dd1.setDate(dd1.getDate() + DueByDateInc);\r",
+									"dd1 = String(dd1.getDate()).padStart(2,'0');\r",
+									"\r",
+									"var dd2 = new Date(today);\r",
+									"dd2.setDate(dd2.getDate() + GLTRPInc);\r",
+									"dd2 = String(dd2.getDate()).padStart(2,'0');\r",
+									"\r",
+									"var dd3 = new Date(today);\r",
+									"dd3.setDate(dd3.getDate() + FSAVDInc);\r",
+									"dd3 = dd3.toISOString().substring(0,10);\r",
+									"\r",
+									"var dd4 = new Date(today);\r",
+									"dd4.setDate(dd4.getDate() + GSTRPInc);\r",
+									"dd4 = String(dd4.getDate()).padStart(2,'0');\r",
+									"\r",
+									"var mm = String(today.getMonth() + 1).padStart(2,'0'); \r",
+									"var yyyy = today.getFullYear();\r",
+									"\r",
+									"\r",
+									"\r",
+									"//end dates to be passed to the xml in correct format\r",
+									"var todayDueBy = yyyy + '-' + mm + '-' + dd1;\r",
+									"var todayGLTRP = yyyy + '-' + mm + '-' + dd2;\r",
+									"var todayGSTRP = dd3;\r",
+									"var todayFSAVD = yyyy + '-' + mm + '-' + dd4;\r",
+									"\r",
+									"\r",
+									"//shift to the next WO number\r",
+									"var curwonum = wONumArray.shift();\r",
+									"\r",
+									"//current wonum we are on\r",
+									"pm.environment.set(\"wonum\", curwonum);\r",
+									"//setting the env variable for wo numbers\r",
+									"pm.environment.set(\"wONumArray\", wONumArray); \r",
+									"\r",
+									"//Setting Date Variables\r",
+									"pm.environment.set(\"DUEBYDATE\", todayDueBy);\r",
+									"pm.environment.set(\"GLTRP\", todayGLTRP);\r",
+									"pm.environment.set(\"GSTRP\", todayGSTRP);\r",
+									"pm.environment.set(\"FSAVD\", todayFSAVD);\r",
+									"\r",
+									"var dd5 = new Date(today);\r",
+									"dd5.setDate(dd5.getDate());\r",
+									"dd5 = String(dd5.getDate()).padStart(2,'0');\r",
+									"var todayERDAT = yyyy + '-' + mm + '-' + dd5;\r",
+									"pm.environment.set(\"ERDAT\", todayERDAT);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var wONumArray = pm.environment.get(\"wONumArray\");",
+									"",
+									"//runs the request recursivley based on how many there are",
+									"if (wONumArray && wONumArray.length > 0)",
+									"{",
+									"    postman.setNextRequest(request.name);",
+									"}",
+									"else",
+									"{",
+									"    postman.setNextRequest();",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "maxauth",
+								"type": "text",
+								"value": "{{maxauth}}"
+							},
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n        <ns1:SyncWCSAPWO xmlns:ns1=\"http://www.ibm.com/maximo\">\r\n            <ns1:WCSAPWOSet>\r\n                <ns1:WCSAPWO action=\"AddChange\">\r\n                    <ns1:AEDAT />\r\n                    <ns1:AUART>PM02</ns1:AUART>\r\n                    <ns1:AUFNR>{{wonum}}</ns1:AUFNR>\r\n                    <ns1:AUTYP>30</ns1:AUTYP>\r\n                    <ns1:DUEBYDATE>{{DUEBYDATE}}T22:56:00</ns1:DUEBYDATE>\r\n                    <ns1:ERDAT>{{ERDAT}}</ns1:ERDAT>\r\n                    <ns1:GIS_CONNECTED_FL>W0046320</ns1:GIS_CONNECTED_FL>\r\n                    <ns1:GLTRP>{{GLTRP}}T22:56:00</ns1:GLTRP>\r\n                    <ns1:GSBER>W</ns1:GSBER>\r\n                    <ns1:GSTRP>{{GSTRP}}T22:56:00</ns1:GSTRP>\r\n                    <ns1:ILART>MP2</ns1:ILART>\r\n                    <ns1:JPNUM>CWDDCV000</ns1:JPNUM>\r\n                    <ns1:KTEXT>QUINNINUP CATCHMENT DAM QUINNINUP</ns1:KTEXT>\r\n                    <ns1:LAUFN />\r\n                    <ns1:PLTXT>CATCHMENT DAM QUINNINUP</ns1:PLTXT>\r\n                    <ns1:PRIOK>I</ns1:PRIOK>\r\n                    <ns1:PRIOKX>1 week</ns1:PRIOKX>\r\n                    <ns1:TPLNR>W0046320</ns1:TPLNR>\r\n                    <ns1:WCFUNCLOCATIONDESC>CATCHMENT DAM QUINNINUP</ns1:WCFUNCLOCATIONDESC>\r\n                    <ns1:WCGISFUNCLOCATION>W0046320</ns1:WCGISFUNCLOCATION>\r\n                    <ns1:WCMXLOCATION>W0046320</ns1:WCMXLOCATION>\r\n                    <ns1:WCSUBURB>QUINNINUP</ns1:WCSUBURB>\r\n                    <ns1:WCSAPWOOP action=\"AddChange\">\r\n                        <ns1:ARBEI>1.1 </ns1:ARBEI>\r\n                        <ns1:ARBPL>SWBLCMC1</ns1:ARBPL>\r\n                        <ns1:FSAVD>{{FSAVD}}T22:56:00</ns1:FSAVD>\r\n                        <ns1:FSAVZ>22:56:00</ns1:FSAVZ>\r\n                        <ns1:GSBER>W</ns1:GSBER>\r\n                        <ns1:LTXA1>CWDDCV000 CATCHMENT SURVEILLANCE</ns1:LTXA1>\r\n                        <ns1:VORNR>0010</ns1:VORNR>\r\n                        <ns1:WCSAPWOOPSTATUS action=\"AddChange\">\r\n                            <ns1:TXT04>REL</ns1:TXT04>\r\n                            <ns1:TXT30>Released</ns1:TXT30>\r\n                            <ns1:UTIME>00:00:00</ns1:UTIME>\r\n                        </ns1:WCSAPWOOPSTATUS>\r\n                    </ns1:WCSAPWOOP>\r\n                    <ns1:WCSAPWOCHAR action=\"AddChange\">\r\n                        <ns1:CHAR_NAME>MAINT_PLANT</ns1:CHAR_NAME>\r\n                        <ns1:CHAR_VALUE>0025</ns1:CHAR_VALUE>\r\n                        <ns1:QMNUM>000095314558</ns1:QMNUM>\r\n                    </ns1:WCSAPWOCHAR>\r\n                </ns1:WCSAPWO>\r\n            </ns1:WCSAPWOSet>\r\n        </ns1:SyncWCSAPWO>"
+						},
+						"url": {
+							"raw": "http://{{hostname}}/meaweb/es/WCSAPINT/WCSAPWO",
+							"protocol": "http",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"meaweb",
+								"es",
+								"WCSAPINT",
+								"WCSAPWO"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
